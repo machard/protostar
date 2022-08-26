@@ -84,6 +84,9 @@ class TestingLiveLogger:
                         else:
                             progress_bar.update(1)
                             tests_left_n -= 1
+
+                    locations = shared_tests_state.get_covered_locations()
+                    self.testing_summary.append_covered_locations(locations)
                 finally:
                     progress_bar.write("")
                     progress_bar.clear()

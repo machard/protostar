@@ -142,6 +142,19 @@ class TestRunner:
                 )
             )
 
+        locations = []
+
+        tracer_datas = execution_state.starknet.cheatable_state.cheatable_carried_state.tracer_datas
+
+        for tracer_data in tracer_datas:
+            if not tracer_data.program.debug_info:
+                continue
+
+            for pc_offset, inst_location in tracer_data.program.debug_info.instruction_locations.items():
+                locations += inst_location.get_all_locations()
+
+        self.shared_tests_state.append_covered_locations(locations)
+
     async def _build_execution_state(
         self,
         test_contract: ContractClass,

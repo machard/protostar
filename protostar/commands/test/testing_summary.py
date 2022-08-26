@@ -9,12 +9,16 @@ from protostar.commands.test.test_results import (
     PassedTestCaseResult,
     TestResult,
 )
+from protostar.commands.test.test_shared_tests_state import SharedTestsState
 from protostar.commands.test.testing_seed import TestingSeed
 from protostar.protostar_exception import ProtostarExceptionSilent
 from protostar.utils.log_color_provider import LogColorProvider, log_color_provider
+from starkware.cairo.lang.compiler.error_handling import Location
 
 
 class TestingSummary:
+    locations: List[str] = []
+
     def __init__(
         self, case_results: List[TestResult], testing_seed: TestingSeed
     ) -> None:
@@ -38,6 +42,10 @@ class TestingSummary:
             if isinstance(case_result, BrokenTestSuiteResult):
                 self.broken.append(case_result)
 
+    def append_covered_locations(self, locations: List[Location]):
+        self.locations = list(
+            set(self.locations + [x.to_string() for x in locations]))
+
     def log(
         self,
         logger: Logger,
@@ -57,6 +65,13 @@ class TestingSummary:
             log_color_provider.bold("Tests: ".ljust(header_width))
             + self._get_test_cases_summary(collected_test_cases_count)
         )
+
+        logger.info(
+            log_color_provider.bold("Lines Covered: ".ljust(header_width))
+            + str(len(self.locations))
+        )
+
+        print(self.locations)
 
         if self.testing_seed.was_used:
             logger.info(

@@ -45,6 +45,8 @@ logger = logging.getLogger(__name__)
 # pylint: disable=raise-missing-from
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
+
+
 class CheatableExecuteEntryPoint(ExecuteEntryPoint):
     cheatcode_factory: Optional["CheatcodeFactory"] = None
     custom_hint_locals: Optional[List[HintLocal]] = None
@@ -204,5 +206,7 @@ class CheatableExecuteEntryPoint(ExecuteEntryPoint):
         # as accessed.
         assert isinstance(args_ptr, RelocatableValue)  # Downcast.
         runner.mark_as_accessed(address=args_ptr, size=len(entry_points_args))
+
+        state.append_tracerdata_from_runner(runner)
 
         return runner, syscall_handler

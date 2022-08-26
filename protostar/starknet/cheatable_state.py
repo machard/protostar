@@ -20,7 +20,9 @@ from starkware.starknet.services.api.messages import StarknetMessageToL1
 from starkware.starknet.testing.state import StarknetState
 from starkware.storage.dict_storage import DictStorage
 from starkware.storage.storage import FactFetchingContext
+from starkware.cairo.lang.tracer.tracer_data import TracerData
 from protostar.commands.test.test_environment_exceptions import SimpleReportedException
+from protostar.starknet.cheatable_cairo_function_runner import CheatableCairoFunctionRunner
 
 from protostar.starknet.cheatable_execute_entry_point import (
     CheatableExecuteEntryPoint,
@@ -115,6 +117,8 @@ def create_cheatable_invoke_function(
 
 # pylint: disable=too-many-instance-attributes
 class CheatableCarriedState(CarriedState):
+    tracer_datas: List[TracerData] = []
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pranked_contracts_map: Dict[int, int] = {}
@@ -230,6 +234,18 @@ class CheatableCarriedState(CarriedState):
             )
 
         return self.class_hash_to_contract_abi_map[class_hash]
+
+    def append_tracerdata_from_runner(self, runner: CheatableCairoFunctionRunner):
+        runner.relocate()
+        tracer_data = TracerData(
+            program=runner.program,
+            memory=runner.relocated_memory,
+            trace=runner.relocated_trace,
+            debug_info=runner.get_relocated_debug_info(),
+            program_base=runner.relocate_value(runner.program_base),
+            air_public_input=None,
+        )
+        self.tracer_datas.append(tracer_data)
 
 
 class CheatableStarknetState(StarknetState):
